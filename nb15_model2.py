@@ -17,7 +17,8 @@ print(data.head())
 # all columns
 # X = data.drop(columns=['label', 'attack_cat'])
 # selected features
-features = ['sttl', 'ct_state_ttl', 'dttl', 'rate', 'sload', 'dload', 'sbytes', 'dbytes', 'smean', 'dmean', 'ct_dst_src_ltm', 'ct_srv_dst', 'dur']
+# features = ['ct_state_ttl', 'sttl', 'dttl', 'rate', 'sload', 'dload', 'sbytes', 'dbytes', 'smean', 'dmean', 'ct_dst_src_ltm', 'ct_srv_dst', 'dur']
+features = ['sttl', 'dttl', 'ct_state_ttl', 'sload', 'dload', 'sbytes', 'dbytes', 'smean', 'dmean', 'rate', 'dur']
 X = data[features]
 # target variable
 y = data['label']
