@@ -17,6 +17,7 @@ flows = defaultdict(lambda: {
     'rate': 0,
     'start_time': None, 
     'end_time': None,
+    'packets': list()
 })
 
 # get the 5-tuple key
@@ -24,6 +25,15 @@ def get_flow_key(packet):
     ip1, ip2 = sorted([packet[IP].src, packet[IP].dst])  # sort ips
     port1, port2 = sorted([packet.sport, packet.dport])  # sort ports
     return (ip1, ip2, port1, port2, packet.proto), (packet[IP].src == ip1)
+
+# convert packet to a dictionary
+def packet_to_dict(packet):
+    layers = {}
+    while packet:
+        layer_name = packet.name
+        layers[layer_name] = packet.fields
+        packet = packet.payload
+    return layers
 
 # process each sniffed packet
 def process_packet(packet):
@@ -60,17 +70,19 @@ def process_packet(packet):
             flow['mean_size_dst'] = flow['bytes_dst'] / max(1, flow['num_packets'])
             flow['rate'] = flow['num_packets'] / max(0.0001, total_duration)
             
-            # display the flow
-            # print(f"Key: {flow_key}")
-            # print(f"Data: {flow}")
+            # add packet dictionary to flows
+            flow['packets'].append(packet_to_dict(packet))
             
-            # print("\n--------------------------------------------------------------------------------------------------\n")
+            # display the flow
+            print(f"Key: {flow_key}")
+            print(f"Data: {flow}")
+            
+            print("\n--------------------------------------------------------------------------------------------------\n")
     except Exception as e:
         
         print("\n\n---------------------------------------------ERROR---------------------------------------------")
         print(f"Error processing packet: {e}")
-        print("---------------------------------------------ERROR---------------------------------------------\n\n")
-        
+        print("---------------------------------------------ERROR---------------------------------------------\n\n") 
         
 def test(packet):
     if packet.haslayer(IP) and packet[IP].dst == '255.255.255.255':

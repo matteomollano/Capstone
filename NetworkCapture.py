@@ -23,7 +23,6 @@ def packet_to_dict(packet):
         layer_name = packet.name
         layers[layer_name] = packet.fields
         packet = packet.payload
-
     return layers
 
 # filter_handler = partial(filter_by_ip, ip='192.168.3.74')
