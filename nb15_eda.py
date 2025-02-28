@@ -11,8 +11,15 @@ test_data = pd.read_csv(test)
 # print(test_data.head())
 # print(test_data.isna().sum())
 
+pd.set_option('display.max_columns', None)
+print("\nDescribing train data:")
+print(train_data.describe())
+
+print("\nDescribing test data:")
+print(test_data.describe())
+
 attack_categories = test_data['attack_cat'].unique()
-print(f"Attack categories: {attack_categories}")
+print(f"\nAttack categories: {attack_categories}")
 
 security_status = test_data['label'].unique()
 print(f"Security status: {security_status}")
