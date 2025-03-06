@@ -8,7 +8,7 @@ def get_flow_key(packet):
     port1, port2 = sorted([packet.sport, packet.dport])  # sort ports
     return (ip1, ip2, port1, port2, packet.proto), (packet[IP].src == ip1)
 
-# convert packet to a dictionary
+# convert packet to a json object
 def packet_to_json(packet):
     layers = {}
     while packet:
@@ -44,10 +44,10 @@ def process_packet(packet):
         # check if the flow exists in the database
         if not check_flow_exists(flow_key):
             # if it doesn't exist, then create a new flow record
-           insert_new_flow(flow_key, is_original_src, packet)
+            insert_new_flow(flow_key, is_original_src, packet, packet_data)
         else:
             # if the flow does already exist, then update it
-            update_flow(flow_key, is_original_src, packet)
+            update_flow(flow_key, is_original_src, packet, packet_data)
             
         print("\n--------------------------------------------------------------------------------------------------\n")
     except Exception as e:
