@@ -1,6 +1,6 @@
 from scapy.all import sniff, IP
 import json
-from database import check_flow_exists, insert_new_flow, update_flow
+from utils import check_flow_exists, insert_new_flow, update_flow
 
 # get the 5-tuple key
 def get_flow_key(packet):

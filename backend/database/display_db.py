@@ -1,4 +1,4 @@
-from database import get_db_connection, get_duration
+from utils import get_db_connection, get_duration
 import json
 
 def is_valid_table_name(table_name):

@@ -5,3 +5,4 @@ datasets/UNSW-NB15_4.csv
 myenv/
 .env
 __pycache__
+.DS_Store

@@ -1,4 +1,4 @@
-from database import get_db_connection
+from utils import get_db_connection
 
 with get_db_connection() as conn:
     with conn.cursor() as cursor:
