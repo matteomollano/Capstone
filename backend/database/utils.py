@@ -49,6 +49,11 @@ def get_duration(start_time: datetime, end_time: datetime):
 
 # insert a new flow record into the Flows table
 def insert_new_flow(flow_key, is_original_src, packet, packet_data):
+    ip1, ip2, port1, port2, protocol = flow_key
+    
+    if port1 == 3306 or port2 == 3306: # skip any connections to the sql database
+        return
+    
     start_time = datetime.now()
     end_time = datetime.now()
     duration = get_duration(start_time, end_time)
@@ -78,7 +83,7 @@ def insert_new_flow(flow_key, is_original_src, packet, packet_data):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute(query, (flow_key[0], flow_key[1], flow_key[2], flow_key[3], flow_key[4], num_packets, ttl_src, ttl_dst, ttl_states, bytes_src, bytes_dst, load_src, load_dst, mean_size_src, mean_size_dst, rate, start_time, end_time, False))
+                cursor.execute(query, (ip1, ip2, port1, port2, protocol, num_packets, ttl_src, ttl_dst, ttl_states, bytes_src, bytes_dst, load_src, load_dst, mean_size_src, mean_size_dst, rate, start_time, end_time, False))
                 conn.commit()
                 
                 # add the new flow's corresponding packet to the Packets table,
