@@ -13,7 +13,7 @@ body {
   font-style: normal;
 }
 
-/* for navbar */
+/* For Navbar */
 .navbar {
   background-color: rgb(29, 29, 29); /* rgb(26, 30, 33); */
   padding: 10px;
@@ -54,9 +54,32 @@ body {
   text-decoration: underline;
 }
 
-/* for flows table */
+
+/* For FlowsTable */
 .table-container {
   margin-top: 20px;
   margin-left: 20px;
   margin-right: 20px;
+}
+
+
+/* For Graphs */
+.graphs-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+
+/* For TopDomains table*/
+.top-domains-table {
+  border-collapse: collapse;
+  width: 100%;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.top-domains-table td, th {
+  border: 1px solid rgb(70, 70, 70);
+  text-align: left;
+  padding: 8px;
 }
