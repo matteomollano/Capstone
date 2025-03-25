@@ -1,15 +1,33 @@
+import { useState, useEffect } from "react"
 
-const data = [
-    { domain: "www.google.com", hits: 250, },
-    { domain: "www.amazon.com", hits: 200, },
-    { domain: "www.spotify.com", hits: 176, },
-    { domain: "my.hofstra.edu", hits: 143 },
-    { domain: "www.nike.com", hits: 50, },
-]
+/* Wireframe data for testing */
+// const data = [
+//     { domain: "www.google.com", hits: 250, },
+//     { domain: "www.amazon.com", hits: 200, },
+//     { domain: "www.spotify.com", hits: 176, },
+//     { domain: "my.hofstra.edu", hits: 143 },
+//     { domain: "www.nike.com", hits: 50, },
+// ]
 
-const totalHits = data.reduce((sum, item) => sum + item.hits, 0);
+// const totalHits = data.reduce((sum, item) => sum + item.hits, 0);
 
 export default function TopDomains() {
+
+    const [data, setData] = useState([]);
+
+    useEffect(() => {
+        fetch('http://localhost:5000/topDomains')
+            .then(response => response.json())
+            .then(data => {
+                setData(data);
+            })
+            .catch(error => {
+                console.error('There was an error fetching the flow data.', error);
+            });
+    }, []);
+
+    const totalHits = data.reduce((sum, item) => sum + item.hits, 0);
+
     return (
         <>
             <table className="top-domains-table">

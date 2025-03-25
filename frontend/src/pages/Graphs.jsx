@@ -5,12 +5,22 @@ import TopDomains from "../components/TopDomains"
 export default function Graphs() {
     return (
         <>
-            <p>Graphs page here...</p>
+            <div className="volume-graph-container">
+                <VolumeGraph />
+            </div>
             <div className="graphs-container">
-                <VolumeGraph />
-                <VolumeGraph />
-                <PacketTypes />
-                <TopDomains />
+                {/* <div className="graphs-container-item">
+                    <VolumeGraph />
+                </div>
+                <div className="graphs-container-item">
+                    <VolumeGraph />
+                </div>              */}
+                <div className="graphs-container-item">
+                    <PacketTypes />
+                </div>
+                <div className="graphs-container-item">
+                    <TopDomains />
+                </div>
             </div>
         </>
     )

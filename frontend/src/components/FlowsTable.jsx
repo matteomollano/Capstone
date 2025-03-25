@@ -7,10 +7,10 @@ export default function FlowsTable() {
 
     useEffect(() => {
         // fetch data from flask backend via fetch
-        fetch('http://localhost:5000/home')
-            .then(response => response.json())  // Parse JSON from the response
+        fetch('http://localhost:5000/flowsTable')
+            .then(response => response.json()) // parse JSON from the response
             .then(data => {
-                setFlowData(data);  // Set the fetched data in state
+                setFlowData(data); // set the fetched data in state
             })
             .catch(error => {
                 console.error('There was an error fetching the flow data.', error);
@@ -55,17 +55,17 @@ export default function FlowsTable() {
         },
         {
             accessorKey: 'num_packets',
-            header: '# Packets',
+            header: 'Packets',
             size: 75,
         },
         {
             accessorKey: 'bytes_src',
-            header: 'Bytes Source',
+            header: 'Bytes Sent',
             size: 75,
         },
         {
             accessorKey: 'bytes_dst',
-            header: 'Bytes Dest',
+            header: 'Bytes Received',
             size: 75,
         },
         {
