@@ -1,12 +1,19 @@
-from scapy.all import sniff, IP
+from scapy.all import sniff, IP, TCP, UDP
 import json
 from utils import check_flow_exists, insert_new_flow, update_flow
 
 # get the 5-tuple key
 def get_flow_key(packet):
     ip1, ip2 = sorted([packet[IP].src, packet[IP].dst])  # sort ips
-    port1, port2 = sorted([packet.sport, packet.dport])  # sort ports
+    
+    # if the packet doesn't have ports, we set the ports to None
+    if packet.haslayer(TCP) or packet.haslayer(UDP):
+        port1, port2 = sorted([packet.sport, packet.dport])  # sort ports
+    else:
+        port1, port2 = None, None  # no ports for ICMP, IGMP, etc.
+        
     return (ip1, ip2, port1, port2, packet.proto), (packet[IP].src == ip1)
+
 
 # convert packet to a json object
 def packet_to_json(packet):

@@ -1,5 +1,4 @@
-from scapy.all import sniff, IP, TCP
-from functools import partial
+from scapy.all import sniff, Ether, IP, TCP
 import json
 
 def packet_callback(packet):
@@ -39,14 +38,42 @@ def packet_to_dict(packet):
 def dict_to_json(dict):
     return json.dumps(dict)
 
+def handle_packet(packet):
+    print(packet_to_dict(packet))
+    print(f'Source MAC Address: {packet[Ether].src}')
+    print(f'Dest MAC Address: {packet[Ether].dst}')
+    print(f'Source IP Address: {packet[IP].src}')
+    print(f'Dest IP Address: {packet[IP].dst}')
+    print(f'Protocol: {packet.proto}')
+    print("\n---------------------------------\n")
+
+protocol_counts = {}
+def get_protocol_counts(packet):
+    global protocol_counts
+
+    if packet.proto not in protocol_counts:
+        protocol_counts[packet.proto] = 1
+    else:
+        protocol_counts[packet.proto] += 1
+        
+    print(protocol_counts)
+    print("\n---------------------------------\n")
+    
+def filter_by_broadcast(packet):
+    if packet[IP].src == '255.255.255.255' or packet[IP].dst == '255.255.255.255':
+        print(packet_to_dict(packet))
+        print("\n---------------------------------\n")
+
 # filter_handler = partial(filter_by_ip, ip='192.168.3.74')
 # filter_handler = partial(filter_by_port, port=443)
 # sniff(iface="en0", prn=packet_callback, lfilter=filter_handler, store=False)
 
-packet = sniff(iface="en0", count=1)[0]
-packet_dict = packet_to_dict(packet)
-packet_json = dict_to_json(packet_dict)
+# packet = sniff(iface="en0", count=1)[0]
+# packet_dict = packet_to_dict(packet)
+# packet_json = dict_to_json(packet_dict)
 
 # print(packet_dict)
 # packet.show()
-print(packet_json)
+# print(packet_json)
+
+sniff(prn=filter_by_broadcast, store=False)
