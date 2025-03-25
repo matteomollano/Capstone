@@ -2,8 +2,10 @@ import mysql.connector
 from mysql.connector import Error
 from dotenv import load_dotenv
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from scapy.all import IP
+
+FLOW_TIMEOUT = timedelta(minutes = 10)
 
 # establish connection to the database
 def get_db_connection():
@@ -23,6 +25,12 @@ def get_db_connection():
     return conn
 
 
+# check if the flow is expired (i.e. it elapses the FLOW_TIMEOUT)
+def is_flow_expired(last_seen_time):
+    current_time = datetime.now()
+    return (current_time - last_seen_time) > FLOW_TIMEOUT
+
+
 # check if the flow already exists in the database using the 5-tuple flow key
 # (ip1, ip2, port1, port2, packet.proto)
 def check_flow_exists(flow_key):
@@ -30,15 +38,35 @@ def check_flow_exists(flow_key):
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    query = """SELECT flow_id FROM Flows
-               WHERE src_ip = %s AND dst_ip = %s 
-               AND src_port = %s AND dst_port = %s 
-               AND protocol = %s"""
+    # if the packet doesn't use ports, we need a different query
+    if port1 == None or port2 == None:
+        query = """SELECT flow_id, end_time FROM Flows
+                   WHERE src_ip = %s AND dst_ip = %s
+                   AND src_port IS NULL AND dst_port IS NULL
+                   AND protocol = %s"""
+        params = (ip1, ip2, protocol)
+    else:
+        query = """SELECT flow_id, end_time FROM Flows
+                   WHERE src_ip = %s AND dst_ip = %s 
+                   AND src_port = %s AND dst_port = %s 
+                   AND protocol = %s"""
+        params = (ip1, ip2, port1, port2, protocol)
     
-    cursor.execute(query, (ip1, ip2, port1, port2, protocol))
+    cursor.execute(query, params)
     result = cursor.fetchone()
     conn.close()
-    return result is not None
+    
+    # if the flow doesn't exist
+    if result is None:
+        return False
+    
+    # if the flow exists, check if it has expired
+    end_time = result[1]
+    if is_flow_expired(end_time):
+        return False
+    
+    # the flow exists and has not expired
+    return True
 
 
 # calculate the duration in seconds between two datetime objects
@@ -50,9 +78,6 @@ def get_duration(start_time: datetime, end_time: datetime):
 # insert a new flow record into the Flows table
 def insert_new_flow(flow_key, is_original_src, packet, packet_data):
     ip1, ip2, port1, port2, protocol = flow_key
-    
-    if port1 == 3306 or port2 == 3306: # skip any connections to the sql database
-        return
     
     start_time = datetime.now()
     end_time = datetime.now()
@@ -89,6 +114,15 @@ def insert_new_flow(flow_key, is_original_src, packet, packet_data):
                 # add the new flow's corresponding packet to the Packets table,
                 # using the flow_id as the foreign key
                 flow_id = cursor.lastrowid
+                
+                # for debugging
+                print(f"Inserting new flow with flow_id: {flow_id}")
+                print(f"src ip: {ip1}, dst ip: {ip2}")
+                print(f"src port: {port1}, dst port: {port2}, protocol: {protocol}")
+                print(f"start time: {start_time}, end time: {end_time}")
+                print("\n--------------------------------------------------------------------------------------------------\n")
+                
+                # add the new flow's corresponding packet data to the Packets table
                 insert_packet(flow_id, packet_data, start_time)
     except Error as e:
         print(f"Error inserting new flow: {e}")
@@ -98,20 +132,29 @@ def insert_new_flow(flow_key, is_original_src, packet, packet_data):
 def update_flow(flow_key, is_original_src, packet, packet_data):
     ip1, ip2, port1, port2, protocol = flow_key
     
-    query = """SELECT * FROM Flows WHERE src_ip = %s AND dst_ip = %s 
-               AND src_port = %s AND dst_port = %s AND protocol = %s"""
+    # if the packet doesn't use ports, we need a different query
+    if port1 == None or port2 == None:
+        query = """SELECT * FROM Flows WHERE src_ip = %s AND dst_ip = %s
+                   AND src_port IS NULL AND dst_port IS NULL AND protocol = %s
+                   ORDER BY end_time DESC LIMIT 1"""
+        params = (ip1, ip2, protocol)
+    else:
+        query = """SELECT * FROM Flows WHERE src_ip = %s AND dst_ip = %s 
+                   AND src_port = %s AND dst_port = %s AND protocol = %s
+                   ORDER BY end_time DESC LIMIT 1"""
+        params = (ip1, ip2, port1, port2, protocol)
     
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute(query, (ip1, ip2, port1, port2, protocol))
+                cursor.execute(query, params)
                 results = cursor.fetchone()
 
                 if results:
-                    print("results object:", results)
-                    start_time = results[17]  # index for start_time
-                    end_time = datetime.now()
-                    duration = get_duration(start_time, end_time)
+                    start_time = results[17]
+                    old_end_time = results[18]
+                    new_end_time = datetime.now()
+                    duration = get_duration(start_time, new_end_time)
                     
                     ttl_src = results[7]
                     ttl_dst = results[8]
@@ -125,14 +168,12 @@ def update_flow(flow_key, is_original_src, packet, packet_data):
                     # get num_packets and increase by 1
                     num_packets = results[6]
                     num_packets += 1
-                    print("num packets", num_packets)
                     
                     mean_size_src = bytes_src / max(1, num_packets)
                     mean_size_dst = bytes_dst / max(1, num_packets)
                     rate = num_packets / max(0.0001, duration)
                     
                     ttl_states = results[9]
-                    print("ttl_states:", ttl_states)
                     new_ttl_state = str(packet[IP].ttl)
                     
                     if ttl_states: # if ttl_states has previous ttl values already
@@ -148,17 +189,24 @@ def update_flow(flow_key, is_original_src, packet, packet_data):
                                     
                     if is_original_src:
                         update_query += ", ttl_src = %s, bytes_src = %s, load_src = %s WHERE flow_id = %s"
-                        params = (num_packets, ttl_states, mean_size_src, mean_size_dst, rate, end_time, ttl_src, bytes_src, load_src, results[0])
+                        update_params = (num_packets, ttl_states, mean_size_src, mean_size_dst, rate, new_end_time, ttl_src, bytes_src, load_src, results[0])
                     else:
                         update_query += ", ttl_dst = %s, bytes_dst = %s, load_dst = %s WHERE flow_id = %s"
-                        params = (num_packets, ttl_states, mean_size_src, mean_size_dst, rate, end_time, ttl_dst, bytes_dst, load_dst, results[0])
-                    cursor.execute(update_query, params)
+                        update_params = (num_packets, ttl_states, mean_size_src, mean_size_dst, rate, new_end_time, ttl_dst, bytes_dst, load_dst, results[0])
+                    cursor.execute(update_query, update_params)
                     conn.commit()
                     
-                    # add packet json to the Packets table, using flow_id as the foreign key
+                    # for debugging
                     flow_id = results[0]
-                    print("flow_id", flow_id)
-                    insert_packet(flow_id, packet_data, end_time)
+                    print(f"Updating flow_id {flow_id} with src ip: {ip1}, dst ip: {ip2}")
+                    print(f"src port: {port1}, dst port: {port2}, protocol: {protocol}")
+                    print("num packets", num_packets)
+                    print(f"start time: {start_time}, old end time: {old_end_time}, new end time: {new_end_time}")
+                    print("\n--------------------------------------------------------------------------------------------------\n")
+                    
+                    
+                    # add packet json to the Packets table, using flow_id as the foreign key
+                    insert_packet(flow_id, packet_data, new_end_time)
     except Error as e:
         print(f"Error updating existing flow: {e}")
     

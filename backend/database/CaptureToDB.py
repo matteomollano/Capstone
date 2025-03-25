@@ -1,5 +1,5 @@
 from scapy.all import sniff, IP, TCP, UDP
-import json
+import json, traceback
 from utils import check_flow_exists, insert_new_flow, update_flow
 
 # get the 5-tuple key
@@ -39,11 +39,17 @@ def packet_to_json(packet):
 def process_packet(packet):
     try:
         # disregard broadcasts
-        if packet.haslayer(IP) and packet[IP].dst == '255.255.255.255':
-            return
+        # if packet.haslayer(IP) and packet[IP].dst == '255.255.255.255':
+        #     print("Broadcast packet detected. Skipping...")
+        #     return
         
         # get flow key and is_original_src boolean
         flow_key, is_original_src = get_flow_key(packet)
+        
+        ip1, ip2, port1, port2, proto = flow_key
+        # skip any connections to the sql database
+        if port1 == 3306 or port2 == 3306:
+            return
         
         # packet data as json for Packets table
         packet_data = packet_to_json(packet)
@@ -56,10 +62,10 @@ def process_packet(packet):
             # if the flow does already exist, then update it
             update_flow(flow_key, is_original_src, packet, packet_data)
             
-        print("\n--------------------------------------------------------------------------------------------------\n")
     except Exception as e:
         print("\n\n---------------------------------------------ERROR---------------------------------------------")
-        print(f"Error processing packet: {e}")
+        # print(f"Error processing packet: {e}")
+        print(traceback.format_exc())
         print("---------------------------------------------ERROR---------------------------------------------\n\n")
 
 # sniff packets

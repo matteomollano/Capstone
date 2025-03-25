@@ -1,5 +1,5 @@
 from database.utils import get_db_connection
-from backend.database.ip_protocol_dict import ip_protocol_dict
+from database.ip_protocol_dict import ip_protocol_dict
 from utils.ip_addr import is_public_ip, get_domain_name
 
 # get the last 50 flows to display on the tables page
