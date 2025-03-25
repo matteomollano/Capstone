@@ -107,10 +107,27 @@ def aggregate_packets_by_flow_id(flow_id):
     print(f"rate: {rate}")
     print(f"start_time: {first_packet_time}")
     print(f"end_time: {last_packet_time}")
+    
+    
+def display_flow_by_protocol(protocol):
+    query = '''
+    SELECT * FROM Flows WHERE protocol = %s
+    '''
+    with get_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(query, (protocol, ))
+            column_names = [desc[0] for desc in cursor.description]
+            results = cursor.fetchall()
+            
+            for row in results:
+                for i, column_value in enumerate(row):
+                    print(f"{column_names[i]}: {column_value}")
+                print("\n--------------------------------------------------------------------------------------------\n")
 
                 
 if __name__ == "__main__":
-    display_table("Flows")
+    # display_table("Flows")
     # display_flow_by_id(111)
     # print("\n--------------------------------------------------------------------------------------------\n")
     # aggregate_packets_by_flow_id(111)
+    display_flow_by_protocol(1)
