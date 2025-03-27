@@ -27,7 +27,7 @@ with get_db_connection() as conn:
             is_malicious BOOLEAN
         );
         """
-        cursor.execute(flows_query)
+        # cursor.execute(flows_query)
         
         # create Packets table
         packets_query = """
@@ -39,4 +39,18 @@ with get_db_connection() as conn:
             FOREIGN KEY (flow_id) REFERENCES Flows(flow_id) ON DELETE CASCADE
         );
         """
-        cursor.execute(packets_query)
+        # cursor.execute(packets_query)
+        
+        # create Frames table
+        frames_query = """
+        CREATE TABLE Frames (
+            frame_id INT AUTO_INCREMENT PRIMARY KEY,
+            flow_id INT,
+            src_mac VARCHAR(17),
+            dst_mac VARCHAR(17),
+            ether_type INT,
+            protocol VARCHAR(30),
+            FOREIGN KEY (flow_id) REFERENCES Flows(flow_id) ON DELETE CASCADE
+        );
+        """
+        cursor.execute(frames_query)
