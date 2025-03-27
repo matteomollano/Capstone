@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label, } from "recharts";
 
 // Sample traffic data with timestamp, bytes_sent, and bytes_received
 // const data = [
@@ -56,15 +56,47 @@ export default function VolumeGraph() {
         }, []);
 
     return (
-        <ResponsiveContainer width="95%" height={300}>
-            <AreaChart data={data}>
+        <ResponsiveContainer width="95%" height={375}>
+            <AreaChart 
+                data={data}
+                margin={{ top: 40, right: 25, left: 25, bottom: 30 }}
+            >
+                {/* title */}
+                <text
+                    x="50%" // Adjust the x position
+                    y={15}  // Adjust the y position
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    style={{ fontSize: "21px", fontWeight: "bold", fill: "white" }}
+                >
+                    Bytes Sent and Received Over Time
+                </text>
+
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time_interval" interval="preserveStartEnd" />
-                <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`} />
+
+                {/* X and Y axis, with labels */}
+                <XAxis dataKey="time_interval" interval="preserveStartEnd" tick={{ dy: 10 }}>
+                    <Label
+                        value="Time Interval"
+                        offset={-25} // Adjust distance from the axis
+                        position="insideBottom"
+                        style={{ fontSize: "16px" }}
+                    />
+                </XAxis>
+                <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}>
+                    <Label
+                        value="Bytes (in millions)"
+                        offset={-17}
+                        angle={-90}
+                        position="insideLeft"
+                        style={{ fontSize: "16px", textAnchor: "middle" }}
+                    />
+                </YAxis>
+                
                 <Tooltip />
                 <Area type="monotone" dataKey="bytes_sent" stackId="1" stroke="#8884d8" fill="#8884d8" name="Bytes Sent"/>
                 <Area type="monotone" dataKey="bytes_received" stackId="1" stroke="#82ca9d" fill="#82ca9d" name="Bytes Received" />
             </AreaChart>
-        </ResponsiveContainer> 
+        </ResponsiveContainer>
     )
 }

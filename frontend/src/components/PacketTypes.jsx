@@ -33,6 +33,7 @@ export default function PacketTypes() {
         backgroundColor: "transparent",
         titleTextStyle: {
             color: "white",
+            fontSize: 21,
         },
         legend: {
             textStyle: {
