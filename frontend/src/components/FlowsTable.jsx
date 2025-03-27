@@ -42,11 +42,13 @@ export default function FlowsTable() {
             accessorKey: 'src_port',
             header: 'Source Port',
             size: 75,
+            Cell: ({ cell }) => cell.getValue() ?? 'N/A',
         },
         {
             accessorKey: 'dst_port',
             header: 'Dest Port',
             size: 75,
+            Cell: ({ cell }) => cell.getValue() ?? 'N/A',
         },
         {
             accessorKey: 'protocol',
