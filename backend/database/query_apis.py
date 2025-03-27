@@ -1,5 +1,4 @@
 from database.utils import get_db_connection
-from database.ip_protocol_dict import ip_protocol_dict
 from utils.ip_addr import is_public_ip, get_domain_name
 
 # get the last 50 flows to display on the tables page
@@ -89,7 +88,7 @@ def get_packet_types():
             ]
             
             for row in results:
-                protocol_name = ip_protocol_dict[row[0]]
+                protocol_name = row[0]
                 num_packets = int(row[1])
                 packet_types.append([protocol_name, num_packets])
             
