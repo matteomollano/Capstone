@@ -3,7 +3,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from './pages/Layout';
 import Home from './pages/Home';
-import Table from './pages/Table';
+import Tables from './pages/Tables';
 import Graphs from './pages/Graphs';
 import NoPage from './pages/NoPage';
 
@@ -13,7 +13,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
-          <Route path="table" element={<Table />} />
+          <Route path="tables" element={<Tables />} />
           <Route path="graphs" element={<Graphs />} />
           <Route path="*" element={<NoPage />} />
         </Route>

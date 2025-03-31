@@ -7,7 +7,7 @@ export default function Navbar() {
             <span className="title">Netara</span>
             <ul className='navbar-links'>
                 <li><Link to="/">Home</Link></li>
-                <li><Link to="/table">Table</Link></li>
+                <li><Link to="/tables">Tables</Link></li>
                 <li><Link to="/graphs">Graphs</Link></li>
             </ul>
         </nav>
