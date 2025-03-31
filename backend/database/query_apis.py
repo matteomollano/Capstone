@@ -38,6 +38,30 @@ def get_flow_table():
                 }
                 flow_list.append(flow)
             return flow_list
+        
+        
+# get the last 50 frames to display on the table page
+def get_frame_table():
+    query = '''SELECT * FROM Frames 
+               ORDER BY frame_id DESC
+               LIMIT 50'''
+    with get_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(query)
+            results = cursor.fetchall()
+            
+            frame_list = []
+            for row in results:
+                frame = {
+                    'frame_id': row[0],
+                    'flow_id': row[1],
+                    'src_mac': row[2],
+                    'dst_mac': row[3],
+                    'ether_type': row[4],
+                    'protocol': row[5]
+                }
+                frame_list.append(frame)
+            return frame_list
  
 
 # get the volume data over time for VolumeGraph
