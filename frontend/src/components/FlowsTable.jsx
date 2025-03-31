@@ -1,5 +1,5 @@
-import { React, useMemo, useState, useEffect } from 'react';
-import { MaterialReactTable, useMaterialReactTable } from 'material-react-table';
+import { React, useMemo, useState, useEffect, } from 'react';
+import BaseTable from './common/BaseTable';
 
 export default function FlowsTable() {
 
@@ -77,23 +77,10 @@ export default function FlowsTable() {
         },
     ], []);
 
-    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
-    const [sorting, setSorting] = useState([]);
-
-    const table = useMaterialReactTable({
-        columns: flowColumns,
-        data: flowData, // data must be memoized or stable (useState, useMemo, defined outside of this component, etc.)
-        enableDensityToggle: false, // disable density toggle
-        enableFullScreenToggle: false, // disable full screen toggle
-        initialState: { density: 'compact' },
-        state: { pagination, sorting },
-        onPaginationChange: setPagination,
-        onSortingChange: setSorting,
-    });
-
     return (
-        <MaterialReactTable 
-            table={table}
+        <BaseTable
+            data={flowData}
+            columns={flowColumns}
         />
     )
 }
