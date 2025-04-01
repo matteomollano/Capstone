@@ -55,10 +55,10 @@ def get_frame_table():
                 frame = {
                     'frame_id': row[0],
                     'flow_id': row[1],
-                    'src_mac': row[2],
-                    'dst_mac': row[3],
-                    'ether_type': row[4],
-                    'protocol': row[5]
+                    'src_mac': row[3],
+                    'dst_mac': row[4],
+                    'ether_type': row[5],
+                    'protocol': row[6]
                 }
                 frame_list.append(frame)
             return frame_list
