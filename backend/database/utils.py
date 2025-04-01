@@ -139,12 +139,12 @@ def insert_new_flow(flow_key, is_original_src, packet_layer, packet_json, frame_
                 
                 # add the new flow's corresponding packet json to the Packets table,
                 # using flow_id as the foreign key
-                insert_packet(flow_id, packet_json, start_time)
+                packet_id = insert_packet(flow_id, packet_json, start_time, debug)
                 
                 # add the new flow's corresponding frame data to the Frames table
-                insert_frame(flow_id, frame_layer)
+                insert_frame(flow_id, packet_id, frame_layer, debug)
                 
-                print("\n--------------------------------------------------------------------------------------------\n")
+                # print("\n--------------------------------------------------------------------------------------------\n")
     except Error as e:
         print(f"Error inserting new flow: {e}")
 
@@ -323,40 +323,46 @@ def update_flow(flow_key, is_original_src, packet_layer, packet_json, frame_laye
             flow_id, new_end_time = update_ip_flow(flow_key, is_original_src, packet_layer, debug)    
                         
         # add packet json to the Packets table, using flow_id as the foreign key
-        insert_packet(flow_id, packet_json, new_end_time)
+        packet_id = insert_packet(flow_id, packet_json, new_end_time, debug)
         
         # add frame data to the Frames table, using flow_id as the foreign key
-        insert_frame(flow_id, frame_layer)
+        insert_frame(flow_id, packet_id, frame_layer, debug)
         
-        print("\n--------------------------------------------------------------------------------------------------\n")
+        # print("\n--------------------------------------------------------------------------------------------------\n")
     except Error as e:
         print(f"Error updating existing flow: {e}")
     
     
 # function to insert a flow's corresponding packet into the Packets table
-def insert_packet(flow_id, packet_json, timestamp):  
+def insert_packet(flow_id, packet_json, timestamp, debug):  
     insert_query = "INSERT INTO Packets (flow_id, packet_data, timestamp) VALUES (%s, %s, %s)"
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cursor: 
                 cursor.execute(insert_query, (flow_id, packet_json, timestamp))
                 conn.commit()
-        print(f"\nInserting packet for flow_id {flow_id}")
-        print(f"timestamp: {timestamp}")
+                packet_id = cursor.lastrowid
+        if debug:
+            print(f"\nInserting packet for flow_id {flow_id}")
+            print(f"timestamp: {timestamp}")
+        return packet_id
     except Error as e:
         print(f"Error inserting packet for flow_id {flow_id}: {e}")
   
   
 # function to insert a flow's corresponding frame into the Frames table
-def insert_frame(flow_id, frame_layer):
+def insert_frame(flow_id, packet_id, frame_layer, debug):
     src_mac, dst_mac, ether_type, protocol = frame_layer["src_mac_address"], frame_layer["dst_mac_address"], frame_layer["ether_type"], frame_layer["protocol"]
-    insert_query = "INSERT INTO Frames (flow_id, src_mac, dst_mac, ether_type, protocol) VALUES (%s, %s, %s, %s, %s)"
+    insert_query = "INSERT INTO Frames (flow_id, packet_id, src_mac, dst_mac, ether_type, protocol) VALUES (%s, %s, %s, %s, %s, %s)"
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute(insert_query, (flow_id, src_mac, dst_mac, ether_type, protocol))
+                cursor.execute(insert_query, (flow_id, packet_id, src_mac, dst_mac, ether_type, protocol))
                 conn.commit()
-        print(f"\nInserting frame for flow_id {flow_id}")
-        print(f"src mac: {src_mac}, dst mac: {dst_mac}, ether type: {ether_type}, protocol: {protocol}")
+        if debug:
+            print(f"\nInserting frame for flow_id {flow_id} and packet_id {packet_id}")
+            print(f"src mac: {src_mac}, dst mac: {dst_mac}, ether type: {ether_type}, protocol: {protocol}")
+            print("\n--------------------------------------------------------------------------------------------\n")
     except Error as e:
         print(f"Error inserting frame for flow_id {flow_id}: {e}")
+        print("\n--------------------------------------------------------------------------------------------\n")
