@@ -134,4 +134,19 @@ body {
 .map-component {
   width: 400px;
   height: 600px;
+  border-radius: 20px;
+}
+
+
+/* For Geolocation Page */
+.geolocation-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  /* height: 100vh; */
+  padding: 20px;
+}
+
+.map-section {
+  height: 100%;
 }
