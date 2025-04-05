@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Tables from './pages/Tables';
 import Graphs from './pages/Graphs';
 import NoPage from './pages/NoPage';
+import Geolocation from './pages/Geolocation';
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
           <Route index element={<Home />} />
           <Route path="tables" element={<Tables />} />
           <Route path="graphs" element={<Graphs />} />
+          <Route path="geolocation" element={<Geolocation />} />
           <Route path="*" element={<NoPage />} />
         </Route>
       </Routes>
