@@ -9,14 +9,10 @@ if (typeof mapboxToken === "undefined") {
 }
 mapboxgl.accessToken = mapboxToken;
 
-export default function Map() {
+export default function Map({ latitude, longitude }) {
     // references to map container and the actual map
     const mapContainer = useRef(null);
     const map = useRef(null);
-
-    // coordinates (will be updated to work with api data)
-    const latitude = 40.7169 // using hofstra coordinates for testing
-    const longitude = -73.5990
 
     useEffect(() => {
         if (!map.current && mapContainer.current) {
