@@ -1,5 +1,6 @@
 from database.utils import get_db_connection
-from utils.ip_addr import is_public_ip, get_domain_name
+from utils.ip_addr import is_public_ip
+from geolocation.geo import get_ip_data
 
 # get the last 50 flows to display on the tables page
 def get_flow_table():
@@ -15,7 +16,7 @@ def get_flow_table():
         is_malicious 
     FROM Flows 
     ORDER BY flow_id DESC
-    LIMIT 50'''
+    LIMIT 10''' # changing to 10 for testing
     with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(query)
@@ -23,11 +24,23 @@ def get_flow_table():
             
             flow_list = []
             for row in results:
+                # get src and dst ip
+                src_ip = row[2]
+                dst_ip = row[3]
+                
+                # if the src or dst ip addresses are public ips,
+                # get their ip info using ipdata api call
+                if is_public_ip(src_ip):
+                    src_ip = get_ip_data(src_ip)
+                
+                if is_public_ip(dst_ip):
+                    dst_ip = get_ip_data(dst_ip)
+                
                 flow = {
                     'flow_id': row[0],
                     'timestamp': str(row[1]),
-                    'src_ip': row[2],
-                    'dst_ip': row[3],
+                    'src_ip': src_ip,
+                    'dst_ip': dst_ip,
                     'src_port': row[4],
                     'dst_port': row[5],
                     'protocol': row[6],
