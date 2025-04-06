@@ -16,7 +16,7 @@ def get_flow_table():
         is_malicious 
     FROM Flows 
     ORDER BY flow_id DESC
-    LIMIT 10''' # changing to 10 for testing
+    LIMIT 50''' # changing to 10 for testing
     with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(query)
