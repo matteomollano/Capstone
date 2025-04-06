@@ -10,12 +10,15 @@ def filter_response(response):
     return filtered_response
 
 def get_ip_data(public_ip):
-    load_dotenv()
-    ipdata.api_key = os.getenv('API_KEY')
-    response = ipdata.lookup(public_ip)
-    filtered_response = filter_response(response)
-    return filtered_response
-
+    try:
+        load_dotenv()
+        ipdata.api_key = os.getenv('API_KEY')
+        response = ipdata.lookup(public_ip)
+        filtered_response = filter_response(response)
+        return filtered_response
+    except Exception as e:
+        return public_ip
+       
 def OK_status(response_json):
     status = response_json['status']
     if status == 200:
