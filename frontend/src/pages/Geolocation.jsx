@@ -37,9 +37,18 @@ export default function Geolocation() {
         return <div>Loading...</div>;
     }
 
-    // extract latitude and longitude from the ipData
-    const latitude = ipData?.latitude;
-    const longitude = ipData?.longitude;
+    // deconstruct ipData object into variables
+    const {
+        ip,
+        city,
+        region,
+        country_name: country,
+        continent_name: continent,
+        latitude,
+        longitude,
+        flag,
+        asn: { route: subnet, name: company, domain }
+    } = ipData;
 
     return (
         <div className="geolocation-container">
@@ -51,17 +60,59 @@ export default function Geolocation() {
                     <div>Map data unavailable</div>
                 )}
             </div>
+
             <div className="domain-info-section">
-                <p>IP data will go here</p>
-                <p>More data</p>
-                {/* display ip info here */}
-                <p>IP Address: {ipData?.ip}</p>
-                <p>Subnet: {ipData?.asn?.route}</p>
-                <p>Domain: {ipData?.asn?.domain}</p>
-                <p>City: {ipData?.city}</p>
-                <p>State: {ipData?.region}</p>
-                <p>Country: {ipData?.country_name}</p>
-                <p>Company name: {ipData?.asn?.name}</p>
+                <div className="grid-container">
+                    
+                    <div className="info-div">
+                        <p className="info-header">IP</p>
+                        <p className="info-data">{ip ? ip : 'N/A'}</p>
+                    </div>
+
+                    <div className="info-div">
+                        <p className="info-header">Subnet</p>
+                        <p className="info-data">{subnet ? subnet : 'N/A'}</p>
+                    </div>
+
+                    <div className="info-div">
+                        <p className="info-header">Company</p>
+                        <p className="info-data">{company ? company : 'N/A'}</p>
+                    </div>
+
+                    <div className="info-div">
+                        <p className="info-header">Domain</p>
+                        {ipData?.asn?.domain ? (
+                            <a className="info-data-link" href={`https://${domain}`}
+                                target="_blank" rel="noopener noreferrer">{domain}</a>
+                        ) : (
+                            'N/A'
+                        )}
+                    </div>
+
+                    <div className="info-div">
+                        <p className="info-header">City</p>
+                        <p className="info-data">{city ? city : 'N/A'}</p>
+                    </div>
+
+                    <div className="info-div">
+                        <p className="info-header">State</p>
+                        <p className="info-data">{region ? region : 'N/A'}</p>
+                    </div>
+                    
+                    <div className="info-div">
+                        <p className="info-header">Country</p>
+                        <div className="image-container">
+                            <img class="flag-image" src={flag} alt={`flag of ${country}`} />
+                            <p className="info-data">{country ? country : 'N/A'}</p>
+                        </div>
+                    </div>
+
+                    <div className="info-div">
+                        <p className="info-header">Continent</p>
+                        <p className="info-data">{continent ? continent : 'N/A'}</p>
+                    </div>
+
+                </div>
             </div>
         </div>
     )
