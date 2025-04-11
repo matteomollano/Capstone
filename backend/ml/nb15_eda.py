@@ -1,7 +1,7 @@
 import pandas as pd
 
-train = "datasets/UNSW_NB15_training-set.csv"
-test = "datasets/UNSW_NB15_testing-set.csv"
+train = "../datasets/UNSW_NB15_training-set.csv"
+test = "../datasets/UNSW_NB15_testing-set.csv"
 
 train_data = pd.read_csv(train)
 # print(train_data.head())
@@ -27,6 +27,16 @@ print(f"Security status: {security_status}")
 # can predict whether it is normal (0) or an attack record (1)
 # OR
 # try to predict the specific attack category
+
+# number of benign records in each dataset
+train_benign_records = train_data[train_data['label'] == 0]
+num_train_benign_records = train_benign_records.shape[0]
+
+test_benign_records = test_data[test_data['label'] == 0]
+num_test_benign_records = test_benign_records.shape[0]
+
+print('\ntrain benign records:', num_train_benign_records)
+print('test benign records:', num_test_benign_records)
 
 # number of attack records in each dataset
 train_attack_records = train_data[train_data['label'] == 1]
