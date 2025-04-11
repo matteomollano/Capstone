@@ -198,3 +198,80 @@ body {
   align-items: center;
   gap: 10px;
 }
+
+
+/* 404 Page */
+.no-page-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 90vh;
+}
+
+@media screen and (max-width: 952px) {
+  .no-page-container {
+    grid-template-columns: 1fr;
+  }
+  .no-page-container > .left-section {
+    padding-top: 25px;
+  }
+}
+
+/* Content Section for 404 Page */
+.no-page-container > .left-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.left-section > .error-message {
+  width: 75%;
+  margin-bottom: 25px;
+}
+
+.left-section > .error-navigation {
+  width: 75%;
+}
+
+.error-message .error-title {
+  font-weight: bold;
+  font-size: 2.4rem;
+  margin-bottom: 20px;
+
+}
+
+.error-message .error-description {
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+}
+
+.error-navigation > p {
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+}
+
+.error-navigation .navigation-list {
+  list-style: none;
+}
+
+.navigation-list li {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  font-size: 1.4rem;
+}
+
+.navigation-list li a {
+  color: lightblue;
+  text-decoration: none;
+}
+
+.navigation-list li a:hover {
+  text-decoration: underline;
+}
+
+/* Image Section for 404 Page */
+.no-page-container > .right-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
