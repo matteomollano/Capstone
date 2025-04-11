@@ -3,7 +3,8 @@ from mysql.connector import Error
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
-FLOW_TIMEOUT = timedelta(minutes = 10)
+# 60 second timeout to align with UNSW-NB15 dataset
+FLOW_TIMEOUT = timedelta(seconds = 60)
 
 # establish connection to the database
 def get_db_connection():
