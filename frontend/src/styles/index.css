@@ -275,3 +275,136 @@ body {
   align-items: center;
   justify-content: center;
 }
+
+
+/* Home Page */
+.home-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.welcome-section {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.welcome-section h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.features-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.feature-card {
+  background-color: rgb(29, 29, 29);
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+
+  /* for when card is clicked on */
+  cursor: pointer;
+  transition: all 0.3s ease-out;
+}
+
+/* animation for when the card is hovered */
+.feature-card:hover {
+  box-shadow: 0 0px 20px rgba(255, 255, 255, 0.15);
+  background-color: rgb(33, 33, 33);
+}
+
+/* animations for when card is clicked on */
+.feature-card.active {
+  background-color: rgb(35, 35, 35);
+  transform: scale(1.05);
+  border: 2px solid rgb(50, 50, 50);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.feature-card h2 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+/* Description section below the feature cards */
+.feature-detail-section {
+  margin-top: 2rem;
+}
+
+.feature-detail-container {
+  display: flex;
+  gap: 5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 400px; /* add minimum height to ensure consistent space */
+}
+
+.feature-image {
+  flex: 1;
+  display: flex;
+  align-items: center; /* vertical centering */
+  justify-content: center; /* horizontal centering */
+}
+
+.feature-image img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  max-height: 400px; /* prevent extremely tall images */
+  object-fit: contain; /* maintain aspect ratio */
+}
+
+.feature-description {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* vertical centering */
+  padding: 2rem 0;
+}
+
+.feature-description h2 {
+  margin-bottom: 1.5rem;
+}
+
+.feature-section {
+  margin-bottom: 1.5rem;
+}
+
+.feature-section h4 {
+  color: rgb(176, 177, 182);
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.feature-section p {
+  line-height: 1.6;
+}
+
+/* home page media query for mobile devices */
+@media screen and (max-width: 768px) {
+  .feature-detail-container {
+    flex-direction: column;
+    gap: 2rem;
+    min-height: auto;
+  }
+
+  .feature-image {
+    flex: none;
+    width: 100%;
+  }
+
+  .feature-description {
+    flex: none;
+    width: 100%;
+    padding: 1rem 0;
+  }
+
+  .feature-image img {
+    max-height: 300px;
+    /* Slightly smaller image for mobile */
+  }
+}
