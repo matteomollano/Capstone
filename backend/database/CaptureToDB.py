@@ -135,10 +135,10 @@ def process_packet(packet):
         # check if the flow exists in the database
         if not check_flow_exists(flow_key):
             # if it doesn't exist, then create a new flow record
-            insert_new_flow(flow_key, is_original_src, packet_layer, packet_json, frame_layer, debug=False)
+            insert_new_flow(flow_key, is_original_src, packet_layer, packet_json, frame_layer, debug=True)
         else:
             # if the flow does already exist, then update it
-            update_flow(flow_key, is_original_src, packet_layer, packet_json, frame_layer, debug=False)
+            update_flow(flow_key, is_original_src, packet_layer, packet_json, frame_layer, debug=True)
             
     except Exception as e:
         print("\n\n---------------------------------------------ERROR---------------------------------------------")

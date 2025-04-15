@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
 # 60 second timeout to align with UNSW-NB15 dataset
-FLOW_TIMEOUT = timedelta(seconds = 60)
+FLOW_TIMEOUT = timedelta(minutes = 1)
 
 # establish connection to the database
 def get_db_connection():
