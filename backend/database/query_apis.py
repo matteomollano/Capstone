@@ -16,7 +16,7 @@ def get_flow_table():
         is_malicious 
     FROM Flows 
     ORDER BY flow_id DESC
-    LIMIT 50''' # changing to 10 for testing
+    -- LIMIT 50'''
     with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(query)
@@ -30,11 +30,11 @@ def get_flow_table():
                 
                 # if the src or dst ip addresses are public ips,
                 # get their ip info using ipdata api call
-                if is_public_ip(src_ip):
-                    src_ip = get_ip_data(src_ip)
+                # if is_public_ip(src_ip):
+                #     src_ip = get_ip_data(src_ip)
                 
-                if is_public_ip(dst_ip):
-                    dst_ip = get_ip_data(dst_ip)
+                # if is_public_ip(dst_ip):
+                #     dst_ip = get_ip_data(dst_ip)
                 
                 flow = {
                     'flow_id': row[0],
