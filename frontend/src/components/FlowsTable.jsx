@@ -18,25 +18,23 @@ export default function FlowsTable() {
     }, []);
 
     // function to open geolocation page in new tab when domain link is clicked
-    const handleDomainClick = (ipData) => {
-        // store the ipData in sessionStorage
-        sessionStorage.setItem('ipData', JSON.stringify(ipData));
-
-        // open the /geolocation page in a new tab
-        window.open('/geolocation', '_blank');
+    const handleLinkClick = async (ipAddress) => {
+        // open Geolocation page with IP address as the URL parameter
+        window.open(`/geolocation?ip=${ipAddress}`, '_blank');
     };
 
     // function to render IP or domain in FlowsTable
-    const renderIpOrDomain = useCallback((ipData) => {
+    const renderIpAddress = useCallback(({ cell, column, row }) => {
 
-        const domain = ipData?.asn?.domain || ipData;      // use domain if available, else fallback to IP
-        const isDomainAvailable = !!ipData?.asn?.domain;   // check if domain is available
+        const ipAddress = cell.getValue();
+        const columnId =  column.id // get whether this is the 'src_ip' or 'dst_ip' column calling the function
+        const isPublicIP = columnId === "src_ip" ? row.original.is_public_src_ip : row.original.is_public_dst_ip;
 
         return (
             <span>
-                {isDomainAvailable ? (
+                {isPublicIP ? (
                     <button
-                        onClick={() => handleDomainClick(ipData)}  // pass full ipData on click
+                        onClick={() => handleLinkClick(ipAddress)} // display public IP as a link
                         style={{ 
                             color: 'lightblue', 
                             textDecoration: 'underline',
@@ -47,11 +45,10 @@ export default function FlowsTable() {
                             font: 'inherit'
                         }} // make it look like a link
                     >
-                        {domain}
+                        {ipAddress}
                     </button>
                 ) : (
-                    domain  // display IP address if it doesn't have a domain name 
-                            // (because it is a private IP)
+                    ipAddress // don't display as a link since it is a private IP
                 )}
             </span>
         );
@@ -72,13 +69,13 @@ export default function FlowsTable() {
             accessorKey: 'src_ip',
             header: 'Source IP',
             size: 75,
-            Cell: ({ cell }) => renderIpOrDomain(cell.getValue()),
+            Cell: renderIpAddress,
         },
         {
             accessorKey: 'dst_ip',
             header: 'Dest IP',
             size: 75,
-            Cell: ({ cell }) => renderIpOrDomain(cell.getValue()),
+            Cell: renderIpAddress,
         },
         {
             accessorKey: 'src_port',
@@ -117,7 +114,7 @@ export default function FlowsTable() {
             header: 'Security Status',
             size: 75
         },
-    ], [renderIpOrDomain]);
+    ], [renderIpAddress]);
 
     return (
         <BaseTable
