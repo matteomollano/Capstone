@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 from database.query_apis import get_flow_table, get_frame_table, get_volume_data, get_packet_types, get_top_domains
+from geolocation.geo import get_ip_data
 
 app = Flask(__name__)
 CORS(app) # needed so that flask and react can communicate
@@ -30,6 +31,11 @@ def packetTypes():
 def topDomains():
     top_domains = get_top_domains()
     return jsonify(top_domains)
+
+@app.route("/geolocationData/<ip_address>")
+def geolocationData(ip_address):
+    ip_data = get_ip_data(ip_address)
+    return jsonify(ip_data)
 
 if __name__ == "__main__":
     app.run(debug=True)
