@@ -1,25 +1,42 @@
 import { useState, useEffect, } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Map from "../components/Map";
 
 export default function Geolocation() {
 
+    const [searchParams] = useSearchParams();
     const [ipData, setIpData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         // define an async function to fetch and parse the data
         const fetchData = async () => {
-            try {
-                const storedData = sessionStorage.getItem('ipData');
+            // get the ip address from the search parameters
+            const ipAddress = searchParams.get('ip');
+            if (!ipAddress) {
+                setError('No IP address provided');
+                setLoading(false);
+                return;
+            }
 
-                if (storedData) {
-                    const parsedData = JSON.parse(storedData);
-                    setIpData(parsedData); // update the state variable with the parsed data
-                } else {
-                    console.error('No ipData found in sessionStorage');
+            try {
+                // get ip geolocation data from Flask API
+                const response = await fetch(`http://localhost:5000/geolocationData/${ipAddress}`);
+                if (!response.ok) {
+                    throw new Error('HTTP error! status: ', response.status);
                 }
+
+                // get the data from the response
+                const data = await response.json();
+                if (!data) {
+                    throw new Error('No data received from geolocation api');
+                }
+                setIpData(data); // update state with the geolocation data
+
             } catch (error) {
-                console.error('Error parsing ipData:', error);
+                console.error('Error fetching geolocation data:', error);
+                setError(error.message);
             } finally {
                 setLoading(false); // set loading to false when the data is fetched
             }
@@ -28,13 +45,29 @@ export default function Geolocation() {
         // call the fetchData function
         fetchData();
 
-        // clean up: remove the data from sessionStorage after fetching
-        return () => sessionStorage.removeItem('ipData');
-    }, []); // empty dependency array means this will run only once after the first render
+    }, [searchParams]);
 
     // early return to show loading state while data is being fetched
     if (loading) {
-        return <div>Loading...</div>;
+        return (
+            <div className="geolocation-loading">
+                <p>Loading . . .</p>
+            </div>
+        );
+    }
+
+    // display error message on screen if unable to load location data
+    if (error || !ipData) {
+        return (
+            <div className="geolocation-error">
+                <div>
+                    <h2>Error</h2>
+                </div>
+                <div>
+                    <p>{error || 'Unable to load location data'}</p>
+                </div>
+            </div>
+        );
     }
 
     // deconstruct ipData object into variables
