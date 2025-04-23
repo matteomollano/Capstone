@@ -408,3 +408,34 @@ body {
     /* Slightly smaller image for mobile */
   }
 }
+
+
+/* Geolocation Loading Page */
+.geolocation-loading {
+  display: flex;
+  justify-content: center;
+  padding-top: 50px;
+}
+
+.geolocation-loading p {
+  font-size: 1.8rem;
+}
+
+
+/* Geolocation Error Page */
+.geolocation-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+
+  padding-top: 50px;
+}
+
+.geolocation-error h2 {
+  font-size: 1.5rem;
+}
+
+.geolocation-error p {
+  font-size: 1.2rem;
+}
