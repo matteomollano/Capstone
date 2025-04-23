@@ -1,6 +1,5 @@
 from database.utils import get_db_connection
 from utils.ip_addr import is_public_ip
-from geolocation.geo import get_ip_data
 
 # get the last 50 flows to display on the tables page
 def get_flow_table():
@@ -24,30 +23,24 @@ def get_flow_table():
             
             flow_list = []
             for row in results:
-                # get src and dst ip
-                src_ip = row[2]
-                dst_ip = row[3]
-                
-                # if the src or dst ip addresses are public ips,
-                # get their ip info using ipdata api call
-                # if is_public_ip(src_ip):
-                #     src_ip = get_ip_data(src_ip)
-                
-                # if is_public_ip(dst_ip):
-                #     dst_ip = get_ip_data(dst_ip)
-                
+                # check if src and dst IPs are public IPs
+                is_public_src = is_public_ip(row[2])
+                is_public_dst = is_public_ip(row[3])
+                 
                 flow = {
                     'flow_id': row[0],
                     'timestamp': str(row[1]),
-                    'src_ip': src_ip,
-                    'dst_ip': dst_ip,
+                    'src_ip': row[2],
+                    'dst_ip': row[3],
                     'src_port': row[4],
                     'dst_port': row[5],
                     'protocol': row[6],
                     'num_packets': row[7],
                     'bytes_src': row[8],
                     'bytes_dst': row[9],
-                    'is_malicious': row[10]
+                    'is_malicious': row[10],
+                    'is_public_src_ip': is_public_src,
+                    'is_public_dst_ip': is_public_dst
                 }
                 flow_list.append(flow)
             return flow_list
@@ -57,7 +50,7 @@ def get_flow_table():
 def get_frame_table():
     query = '''SELECT * FROM Frames 
                ORDER BY frame_id DESC
-               LIMIT 50'''
+               -- LIMIT 50'''
     with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(query)
@@ -160,14 +153,6 @@ def get_top_domains():
                 
                 # check if the ip is a public ip
                 if is_public_ip(ip):
-                    
-                    # # get the public ip's domain name
-                    # domain_name = get_domain_name(ip)
-                    # if domain_name is not None:
-                    #     host = domain_name
-                    # else:
-                    #     host = ip
-                    
                     data = {'domain': ip, 'hits': num_packets}
                     top_domains.append(data)
                     
