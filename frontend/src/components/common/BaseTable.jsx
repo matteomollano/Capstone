@@ -1,7 +1,7 @@
 import { React, useState, } from 'react';
 import { MaterialReactTable, useMaterialReactTable } from 'material-react-table';
 
-export default function BaseTable({ data, columns }) {
+export default function BaseTable({ data, columns, getRowStyle }) {
     
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
     const [sorting, setSorting] = useState([]);
@@ -15,6 +15,9 @@ export default function BaseTable({ data, columns }) {
         state: { pagination, sorting },
         onPaginationChange: setPagination,
         onSortingChange: setSorting,
+        muiTableBodyRowProps: ({ row }) => ({
+            sx: getRowStyle ? getRowStyle(row) : {},
+        }), // styling for each row in the table
     });
 
     return (

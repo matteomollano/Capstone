@@ -112,14 +112,25 @@ export default function FlowsTable() {
         {
             accessorKey: 'is_malicious',
             header: 'Security Status',
-            size: 75
+            size: 75,
+            Cell: ({ cell }) => {
+                const isMalicious = cell.getValue() === 1;
+                return (isMalicious ? '❌' : '✅');
+            },
         },
     ], [renderIpAddress]);
+
+    const getRowStyle = (row) => {
+        return row.original.is_malicious === 1
+            ? { backgroundColor: 'rgba(255, 0, 0, 0.1)' } // light red styling for malicious flows
+            : {}; // no styling for normal flows (leave default)
+    };
 
     return (
         <BaseTable
             data={flowData}
             columns={flowColumns}
+            getRowStyle={getRowStyle}
         />
     )
 }
