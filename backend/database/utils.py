@@ -183,6 +183,14 @@ def update_non_ip_flow(flow_key, is_original_src, packet_layer, debug=True):
                 
                 if results:
                     start_time, old_end_time = results[17], results[18]
+                    
+                    # check again if flow is expired
+                    if is_flow_expired(old_end_time):
+                        if debug:
+                            print(f"Flow expired (flow_id: {results[0]}) - starting new flow instead")
+                        return None, None  # signal to create a new flow instead of updating 
+                    
+                    
                     new_end_time = datetime.now()
                     duration = get_duration(start_time, new_end_time)
                     
@@ -278,6 +286,12 @@ def update_ip_flow(flow_key, is_original_src, packet_layer, debug=True):
 
                 if results:
                     start_time, old_end_time = results[17], results[18]
+                    
+                    if is_flow_expired(old_end_time):
+                        if debug:
+                            print(f"Flow expired (flow_id: {results[0]}) - starting new flow instead")
+                        return None, None
+                    
                     new_end_time = datetime.now()
                     duration = get_duration(start_time, new_end_time)
                     
@@ -375,7 +389,12 @@ def update_flow(flow_key, is_original_src, packet_layer, packet_json, frame_laye
             flow_id, new_end_time = update_non_ip_flow(flow_key, is_original_src, packet_layer, debug)
         # if it does have a TTL value, it has an IP layer (IP flow)
         else:
-            flow_id, new_end_time = update_ip_flow(flow_key, is_original_src, packet_layer, debug)    
+            flow_id, new_end_time = update_ip_flow(flow_key, is_original_src, packet_layer, debug)  
+            
+        # if the original flow is expired, insert a new flow instead
+        if flow_id == None:
+            insert_new_flow(flow_key, is_original_src, packet_layer, packet_json, frame_layer, debug)
+            return  
                         
         # add packet json to the Packets table, using flow_id as the foreign key
         packet_id = insert_packet(flow_id, packet_json, new_end_time, debug)

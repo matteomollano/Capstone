@@ -153,4 +153,4 @@ def process_packet(packet):
 
 # sniff packets
 print("Sniffing packets... Press Ctrl+C to stop.")
-sniff(prn=process_packet, store=False)
+sniff(iface="wlan0", prn=process_packet, store=False) # wlan0 interface for raspberry pi router
