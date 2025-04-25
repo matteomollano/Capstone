@@ -101,3 +101,18 @@ importances_df = pd.DataFrame({
 importances_df = importances_df.sort_values(by='Importance', ascending=False)
 print("\nFeature importances:")
 print(importances_df)
+
+
+# other test set evaluations
+print("\nOther test set evaluations:")
+print("Accuracy:", accuracy_score(y_test, y_pred_test))
+print("Precision:", precision_score(y_test, y_pred_test))
+print("Recall:", recall_score(y_test, y_pred_test))
+print("F1 Score:", f1_score(y_test, y_pred_test))
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred_test))
+
+
+# save the best model to a file
+import joblib
+filename = "random_forest_model.joblib"
+joblib.dump(best_model, filename)

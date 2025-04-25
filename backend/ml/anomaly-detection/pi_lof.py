@@ -152,7 +152,7 @@ for n in [5, 10, 15, 20, 25, 30, 35, 40]:
             best_threshold = t
     # print()
 
-print("Best params for model via threshold")
+print("Best params for model via threshold:")
 print(f"Best n: {best_n}")
 print(f"Best threshold: {best_threshold}")
 print(f"Best false pos count: {fp_count}")
