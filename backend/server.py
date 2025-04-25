@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
+from set_path import *
 from database.query_apis import get_flow_table, get_frame_table, get_volume_data, get_packet_types, get_top_domains
 from geolocation.geo import get_ip_data
 
