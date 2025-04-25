@@ -26,9 +26,9 @@ def get_db_connection():
 
 
 # check if the flow is expired (i.e. it elapses the FLOW_TIMEOUT)
-def is_flow_expired(start_time):
+def is_flow_expired(last_seen_time):
     current_time = datetime.now()
-    return (current_time - start_time) > FLOW_TIMEOUT
+    return (current_time - last_seen_time) > FLOW_TIMEOUT
 
 
 # check if the flow already exists in the database using the 5-tuple flow key
@@ -40,13 +40,13 @@ def check_flow_exists(flow_key):
     
     # if the packet doesn't use ports, we need a different query
     if port1 == None and port2 == None:
-        query = """SELECT start_time FROM Flows
+        query = """SELECT flow_id, end_time FROM Flows
                    WHERE src_ip = %s AND dst_ip = %s
                    AND src_port IS NULL AND dst_port IS NULL
                    AND protocol = %s"""
         params = (ip1, ip2, protocol)
     else:
-        query = """SELECT start_time FROM Flows
+        query = """SELECT flow_id, end_time FROM Flows
                    WHERE src_ip = %s AND dst_ip = %s 
                    AND src_port = %s AND dst_port = %s 
                    AND protocol = %s"""
@@ -61,8 +61,8 @@ def check_flow_exists(flow_key):
         return False
     
     # if the flow exists, check if it has expired
-    start_time = result[0]
-    if is_flow_expired(start_time):
+    end_time = result[1]
+    if is_flow_expired(end_time):
         return False
     
     # the flow exists and has not expired
