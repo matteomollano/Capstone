@@ -25,10 +25,32 @@ def get_db_connection():
     return conn
 
 
-# check if the flow is expired (i.e. it elapses the FLOW_TIMEOUT)
-def is_flow_expired(last_seen_time):
+# check if the flow has elapsed the FLOW_TIMEOUT
+def has_elapsed_timeout(end_time):
+    print("Running is_flow_expired")
     current_time = datetime.now()
-    return (current_time - last_seen_time) > FLOW_TIMEOUT
+    elapsed_time = current_time - end_time
+    print("time since last flow: ", elapsed_time)
+    return (elapsed_time) > FLOW_TIMEOUT
+
+
+# check if the flow is over 60 seconds
+def over_60_seconds(start_time, end_time):
+    print("Running over_60_seconds")
+    duration = get_duration(start_time, end_time)
+    print(f"duration: {duration}")
+    return duration >= 60
+
+
+# check if the flow is expired
+def is_flow_expired(start_time, end_time):
+    is_elapsed = has_elapsed_timeout(end_time)
+    is_over_60_seconds = over_60_seconds(start_time, end_time)
+
+    if not is_elapsed and not is_over_60_seconds:
+        return False
+    else:
+        return True
 
 
 # check if the flow already exists in the database using the 5-tuple flow key
@@ -40,32 +62,41 @@ def check_flow_exists(flow_key):
     
     # if the packet doesn't use ports, we need a different query
     if port1 == None and port2 == None:
-        query = """SELECT flow_id, end_time FROM Flows
+        query = """SELECT flow_id, start_time, end_time FROM Flows
                    WHERE src_ip = %s AND dst_ip = %s
                    AND src_port IS NULL AND dst_port IS NULL
-                   AND protocol = %s"""
+                   AND protocol = %s 
+                   ORDER BY end_time DESC
+                   LIMIT 1"""
         params = (ip1, ip2, protocol)
     else:
-        query = """SELECT flow_id, end_time FROM Flows
+        query = """SELECT flow_id, start_time, end_time FROM Flows
                    WHERE src_ip = %s AND dst_ip = %s 
                    AND src_port = %s AND dst_port = %s 
-                   AND protocol = %s"""
+                   AND protocol = %s
+                   ORDER BY end_time DESC
+                   LIMIT 1"""
         params = (ip1, ip2, port1, port2, protocol)
     
     cursor.execute(query, params)
     result = cursor.fetchone()
+    print("Result", result)
     conn.close()
     
     # if the flow doesn't exist
     if result is None:
+        print("Flow is not expired 1 (result is None)")
         return False
     
     # if the flow exists, check if it has expired
-    end_time = result[1]
-    if is_flow_expired(end_time):
+    start_time = result[1]
+    end_time = result[2]
+    if is_flow_expired(start_time, end_time):
+        print("Flow is expired")
         return False
     
     # the flow exists and has not expired
+    print("Flow is not expired 3")
     return True
 
 
@@ -183,14 +214,7 @@ def update_non_ip_flow(flow_key, is_original_src, packet_layer, debug=True):
                 
                 if results:
                     start_time, old_end_time = results[17], results[18]
-                    
-                    # # check again if flow is expired
-                    # if is_flow_expired(old_end_time):
-                    #     if debug:
-                    #         print(f"Flow expired (flow_id: {results[0]}) - starting new flow instead")
-                    #     return None, None  # signal to create a new flow instead of updating 
-                    
-                    
+                     
                     new_end_time = datetime.now()
                     duration = get_duration(start_time, new_end_time)
                     
@@ -238,7 +262,6 @@ def update_non_ip_flow(flow_key, is_original_src, packet_layer, debug=True):
                         print(f"is_malicious: {is_malicious}")
                         print()
 
-        
                     # update flow query
                     update_query = """
                     UPDATE Flows SET num_packets = %s, load_src = %s, load_dst = %s, 
@@ -273,10 +296,17 @@ def update_non_ip_flow(flow_key, is_original_src, packet_layer, debug=True):
 def update_ip_flow(flow_key, is_original_src, packet_layer, debug=True):
     ip1, ip2, port1, port2, protocol = flow_key
     
-    query = """SELECT * FROM Flows WHERE src_ip = %s AND dst_ip = %s 
-               AND src_port = %s AND dst_port = %s AND protocol = %s
+    # for protocols that don't use ports, but have ttl values (like icmp)
+    if port1 == None and port2 == None:
+        query = """SELECT * FROM Flows WHERE src_ip = %s AND dst_ip = %s 
+               AND src_port is NULL AND dst_port is NULL AND protocol = %s
                ORDER BY end_time DESC LIMIT 1"""
-    params = (ip1, ip2, port1, port2, protocol)
+        params = (ip1, ip2, protocol)
+    else:
+        query = """SELECT * FROM Flows WHERE src_ip = %s AND dst_ip = %s 
+                AND src_port = %s AND dst_port = %s AND protocol = %s
+                ORDER BY end_time DESC LIMIT 1"""
+        params = (ip1, ip2, port1, port2, protocol)
     
     try:
         with get_db_connection() as conn:
@@ -286,11 +316,6 @@ def update_ip_flow(flow_key, is_original_src, packet_layer, debug=True):
 
                 if results:
                     start_time, old_end_time = results[17], results[18]
-                    
-                    # if is_flow_expired(old_end_time):
-                    #     if debug:
-                    #         print(f"Flow expired (flow_id: {results[0]}) - starting new flow instead")
-                    #     return None, None
                     
                     new_end_time = datetime.now()
                     duration = get_duration(start_time, new_end_time)
@@ -352,7 +377,6 @@ def update_ip_flow(flow_key, is_original_src, packet_layer, debug=True):
                         print(f"is_malicious: {is_malicious}")
                         print()
                     
-
                     # update flow query
                     update_query = """UPDATE Flows SET num_packets = %s, ttl_states = %s, load_src = %s, load_dst = %s, 
                     mean_size_src = %s, mean_size_dst = %s, rate = %s, end_time = %s, is_malicious = %s"""
@@ -384,17 +408,15 @@ def update_ip_flow(flow_key, is_original_src, packet_layer, debug=True):
 # update an existing flow record in the Flows table
 def update_flow(flow_key, is_original_src, packet_layer, packet_json, frame_layer, debug=True):
     try:
+        # print("packet layer", packet_layer)
+        # print("packet layer ttl", packet_layer["ttl"])
+
         # if the packet doesn't have a TTL value, it doesn't have an IP layer (non-IP flow)
         if packet_layer["ttl"] == None:
             flow_id, new_end_time = update_non_ip_flow(flow_key, is_original_src, packet_layer, debug)
         # if it does have a TTL value, it has an IP layer (IP flow)
         else:
             flow_id, new_end_time = update_ip_flow(flow_key, is_original_src, packet_layer, debug)  
-            
-        # # if the original flow is expired, insert a new flow instead
-        # if flow_id == None:
-        #     insert_new_flow(flow_key, is_original_src, packet_layer, packet_json, frame_layer, debug)
-        #     return  
                         
         # add packet json to the Packets table, using flow_id as the foreign key
         packet_id = insert_packet(flow_id, packet_json, new_end_time, debug)
