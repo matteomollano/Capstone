@@ -26,9 +26,8 @@ def get_db_connection():
 
 
 # check if the flow is expired (i.e. it elapses the FLOW_TIMEOUT)
-def is_flow_expired(last_seen_time):
-    current_time = datetime.now()
-    return (current_time - last_seen_time) > FLOW_TIMEOUT
+def is_flow_expired(start_time , end_time):
+    return (end_time - start_time) >= FLOW_TIMEOUT
 
 
 # check if the flow already exists in the database using the 5-tuple flow key
@@ -40,13 +39,13 @@ def check_flow_exists(flow_key):
     
     # if the packet doesn't use ports, we need a different query
     if port1 == None and port2 == None:
-        query = """SELECT flow_id, end_time FROM Flows
+        query = """SELECT start_time, end_time FROM Flows
                    WHERE src_ip = %s AND dst_ip = %s
                    AND src_port IS NULL AND dst_port IS NULL
                    AND protocol = %s"""
         params = (ip1, ip2, protocol)
     else:
-        query = """SELECT flow_id, end_time FROM Flows
+        query = """SELECT start_time, end_time FROM Flows
                    WHERE src_ip = %s AND dst_ip = %s 
                    AND src_port = %s AND dst_port = %s 
                    AND protocol = %s"""
@@ -61,8 +60,9 @@ def check_flow_exists(flow_key):
         return False
     
     # if the flow exists, check if it has expired
+    start_time = result[0]
     end_time = result[1]
-    if is_flow_expired(end_time):
+    if is_flow_expired(start_time, end_time):
         return False
     
     # the flow exists and has not expired
@@ -184,11 +184,11 @@ def update_non_ip_flow(flow_key, is_original_src, packet_layer, debug=True):
                 if results:
                     start_time, old_end_time = results[17], results[18]
                     
-                    # check again if flow is expired
-                    if is_flow_expired(old_end_time):
-                        if debug:
-                            print(f"Flow expired (flow_id: {results[0]}) - starting new flow instead")
-                        return None, None  # signal to create a new flow instead of updating 
+                    # # check again if flow is expired
+                    # if is_flow_expired(old_end_time):
+                    #     if debug:
+                    #         print(f"Flow expired (flow_id: {results[0]}) - starting new flow instead")
+                    #     return None, None  # signal to create a new flow instead of updating 
                     
                     
                     new_end_time = datetime.now()
@@ -287,10 +287,10 @@ def update_ip_flow(flow_key, is_original_src, packet_layer, debug=True):
                 if results:
                     start_time, old_end_time = results[17], results[18]
                     
-                    if is_flow_expired(old_end_time):
-                        if debug:
-                            print(f"Flow expired (flow_id: {results[0]}) - starting new flow instead")
-                        return None, None
+                    # if is_flow_expired(old_end_time):
+                    #     if debug:
+                    #         print(f"Flow expired (flow_id: {results[0]}) - starting new flow instead")
+                    #     return None, None
                     
                     new_end_time = datetime.now()
                     duration = get_duration(start_time, new_end_time)
@@ -391,10 +391,10 @@ def update_flow(flow_key, is_original_src, packet_layer, packet_json, frame_laye
         else:
             flow_id, new_end_time = update_ip_flow(flow_key, is_original_src, packet_layer, debug)  
             
-        # if the original flow is expired, insert a new flow instead
-        if flow_id == None:
-            insert_new_flow(flow_key, is_original_src, packet_layer, packet_json, frame_layer, debug)
-            return  
+        # # if the original flow is expired, insert a new flow instead
+        # if flow_id == None:
+        #     insert_new_flow(flow_key, is_original_src, packet_layer, packet_json, frame_layer, debug)
+        #     return  
                         
         # add packet json to the Packets table, using flow_id as the foreign key
         packet_id = insert_packet(flow_id, packet_json, new_end_time, debug)
