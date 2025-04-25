@@ -1,5 +1,11 @@
 from scapy.all import sniff, Ether, ARP, IP, TCP, UDP, ETHER_TYPES, IP_PROTOS, IPv6
 import json, traceback
+
+# fixing path issues (may need to update)
+import sys
+sys.path.append("../")
+from set_path import *
+
 from utils import check_flow_exists, insert_new_flow, update_flow
 from common_ports import COMMON_PORTS
 

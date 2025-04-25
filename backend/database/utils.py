@@ -2,6 +2,7 @@ import mysql.connector, os
 from mysql.connector import Error
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+from database.model_stuff import format_features, predict
 
 # 60 second timeout to align with UNSW-NB15 dataset
 FLOW_TIMEOUT = timedelta(minutes = 1)
@@ -115,6 +116,21 @@ def insert_new_flow(flow_key, is_original_src, packet_layer, packet_json, frame_
     mean_size_src = bytes_src / max(1, num_packets)
     mean_size_dst = bytes_dst / max(1, num_packets)
     rate = num_packets / max(0.0001, duration)
+    
+    
+    # === Machine Learning Predictions === #
+    print("For inserting flow:")
+    data = format_features(
+        src_port=port1, dst_port=port2, protocol=protocol, ttl_src=ttl_src, ttl_dst=ttl_dst,
+        ct_state_ttl=ttl_states, load_src=load_src, load_dst=load_dst, bytes_src=bytes_src, bytes_dst=bytes_dst,
+        mean_size_src=mean_size_src, mean_size_dst=mean_size_dst, rate=rate, duration=duration, num_packets=num_packets
+    )
+    print("Data:")
+    print(data)
+    is_malicious = predict(data)
+    print(f"is_malicious: {is_malicious}")
+    print()
+    
 
     # insert flow into the database
     query = """INSERT INTO Flows 
@@ -194,18 +210,31 @@ def update_non_ip_flow(flow_key, is_original_src, packet_layer, debug=True):
                     # get the flow id
                     flow_id = results[0]
                     
+                    
+                    # === Machine Learning Predictions === #
+                    print("For update non-ip flow:")
+                    data = format_features(
+                        src_port=port1, dst_port=port2, protocol=protocol, ttl_src=None, ttl_dst=None,
+                        ct_state_ttl=None, load_src=load_src, load_dst=load_dst, bytes_src=bytes_src, bytes_dst=bytes_dst,
+                        mean_size_src=mean_size_src, mean_size_dst=mean_size_dst, rate=rate, duration=duration, num_packets=num_packets
+                    )
+                    is_malicious = predict(data)
+                    print(f"is_malicious: {is_malicious}")
+                    print()
+
+        
                     # update flow query
                     update_query = """
                     UPDATE Flows SET num_packets = %s, load_src = %s, load_dst = %s, 
-                    mean_size_src = %s, mean_size_dst = %s, rate = %s, end_time = %s
+                    mean_size_src = %s, mean_size_dst = %s, rate = %s, end_time = %s, is_malicious = %s
                     """
                     
                     if is_original_src:
                         update_query += ", bytes_src = %s WHERE flow_id = %s"
-                        update_params = (num_packets, load_src, load_dst, mean_size_src, mean_size_dst, rate, new_end_time, bytes_src, flow_id)
+                        update_params = (num_packets, load_src, load_dst, mean_size_src, mean_size_dst, rate, new_end_time, is_malicious, bytes_src, flow_id)
                     else:
                         update_query += ", bytes_dst = %s WHERE flow_id = %s"
-                        update_params = (num_packets, load_src, load_dst, mean_size_src, mean_size_dst, rate, new_end_time, bytes_dst, flow_id)
+                        update_params = (num_packets, load_src, load_dst, mean_size_src, mean_size_dst, rate, new_end_time, is_malicious, bytes_dst, flow_id)
                     
                     cursor.execute(update_query, update_params)
                     conn.commit()
@@ -282,19 +311,30 @@ def update_ip_flow(flow_key, is_original_src, packet_layer, debug=True):
                         
                     # get flow id
                     flow_id = results[0]
+                    
+                    
+                    # === Machine Learning Predictions === #
+                    print("For update ip flow:")
+                    data = format_features(
+                        src_port=port1, dst_port=port2, protocol=protocol, ttl_src=ttl_src, ttl_dst=ttl_dst,
+                        ct_state_ttl=ttl_states, load_src=load_src, load_dst=load_dst, bytes_src=bytes_src, bytes_dst=bytes_dst,
+                        mean_size_src=mean_size_src, mean_size_dst=mean_size_dst, rate=rate, duration=duration, num_packets=num_packets
+                    )
+                    is_malicious = predict(data)
+                    print(f"is_malicious: {is_malicious}")
+                    print()
+                    
 
                     # update flow query
-                    update_query = """UPDATE Flows SET num_packets = %s, ttl_states = %s, 
-                                      load_src = %s, load_dst = %s, 
-                                      mean_size_src = %s, mean_size_dst = %s, 
-                                      rate = %s, end_time = %s"""
+                    update_query = """UPDATE Flows SET num_packets = %s, ttl_states = %s, load_src = %s, load_dst = %s, 
+                    mean_size_src = %s, mean_size_dst = %s, rate = %s, end_time = %s, is_malicious = %s"""
                                     
                     if is_original_src:
                         update_query += ", ttl_src = %s, bytes_src = %s WHERE flow_id = %s"
-                        update_params = (num_packets, ttl_states, load_src, load_dst, mean_size_src, mean_size_dst, rate, new_end_time, ttl_src, bytes_src, flow_id)
+                        update_params = (num_packets, ttl_states, load_src, load_dst, mean_size_src, mean_size_dst, rate, new_end_time, is_malicious, ttl_src, bytes_src, flow_id)
                     else:
                         update_query += ", ttl_dst = %s, bytes_dst = %s WHERE flow_id = %s"
-                        update_params = (num_packets, ttl_states, load_src, load_dst, mean_size_src, mean_size_dst, rate, new_end_time, ttl_dst, bytes_dst, flow_id)
+                        update_params = (num_packets, ttl_states, load_src, load_dst, mean_size_src, mean_size_dst, rate, new_end_time, is_malicious, ttl_dst, bytes_dst, flow_id)
                     
                     cursor.execute(update_query, update_params)
                     conn.commit()
