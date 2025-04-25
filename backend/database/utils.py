@@ -210,17 +210,25 @@ def update_non_ip_flow(flow_key, is_original_src, packet_layer, debug=True):
                     # get the flow id
                     flow_id = results[0]
                     
+                    # get label from query
+                    is_malicious = results[19]
+                    print(f"is_malicious before: {is_malicious}")
                     
                     # === Machine Learning Predictions === #
-                    print("For update non-ip flow:")
-                    data = format_features(
-                        src_port=port1, dst_port=port2, protocol=protocol, ttl_src=None, ttl_dst=None,
-                        ct_state_ttl=None, load_src=load_src, load_dst=load_dst, bytes_src=bytes_src, bytes_dst=bytes_dst,
-                        mean_size_src=mean_size_src, mean_size_dst=mean_size_dst, rate=rate, duration=duration, num_packets=num_packets
-                    )
-                    is_malicious = predict(data)
-                    print(f"is_malicious: {is_malicious}")
-                    print()
+                    # only run the models if the flow is not malicious (is_malicious == 0)
+                    # if it's already malicious (is_malicious == 1), there is no need to check again
+                    if is_malicious == 0:
+                        print("For update non-ip flow:")
+                        data = format_features(
+                            src_port=port1, dst_port=port2, protocol=protocol, ttl_src=None, ttl_dst=None,
+                            ct_state_ttl=None, load_src=load_src, load_dst=load_dst, bytes_src=bytes_src, bytes_dst=bytes_dst,
+                            mean_size_src=mean_size_src, mean_size_dst=mean_size_dst, rate=rate, duration=duration, num_packets=num_packets
+                        )
+                        print("Data:")
+                        print(data)
+                        is_malicious = predict(data)
+                        print(f"is_malicious: {is_malicious}")
+                        print()
 
         
                     # update flow query
@@ -312,17 +320,23 @@ def update_ip_flow(flow_key, is_original_src, packet_layer, debug=True):
                     # get flow id
                     flow_id = results[0]
                     
+                    # get the label from the query
+                    is_malicious = results[19]
+                    print(f"is_malicious before: {is_malicious}")
                     
                     # === Machine Learning Predictions === #
-                    print("For update ip flow:")
-                    data = format_features(
-                        src_port=port1, dst_port=port2, protocol=protocol, ttl_src=ttl_src, ttl_dst=ttl_dst,
-                        ct_state_ttl=ttl_states, load_src=load_src, load_dst=load_dst, bytes_src=bytes_src, bytes_dst=bytes_dst,
-                        mean_size_src=mean_size_src, mean_size_dst=mean_size_dst, rate=rate, duration=duration, num_packets=num_packets
-                    )
-                    is_malicious = predict(data)
-                    print(f"is_malicious: {is_malicious}")
-                    print()
+                    if is_malicious == 0:
+                        print("For update ip flow:")
+                        data = format_features(
+                            src_port=port1, dst_port=port2, protocol=protocol, ttl_src=ttl_src, ttl_dst=ttl_dst,
+                            ct_state_ttl=ttl_states, load_src=load_src, load_dst=load_dst, bytes_src=bytes_src, bytes_dst=bytes_dst,
+                            mean_size_src=mean_size_src, mean_size_dst=mean_size_dst, rate=rate, duration=duration, num_packets=num_packets
+                        )
+                        print("Data:")
+                        print(data)
+                        is_malicious = predict(data)
+                        print(f"is_malicious: {is_malicious}")
+                        print()
                     
 
                     # update flow query
