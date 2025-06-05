@@ -8,3 +8,5 @@ __pycache__
 .DS_Store
 ml/old_models
 temp/
+attacks/attacks.md
+.DS_Store
